@@ -12,17 +12,34 @@ class MoviesController < ApplicationController
 
   def index
     @all_ratings=['G','PG','PG-13','R']
+    @redirect=0
     
     @movies = Movie.all
+
     if(params[:sort].to_s == 'title')
+      session[:sort] = params[:sort]
       @movies = @movies.sort_by{|m| m.title}
     elsif(params[:sort].to_s == 'release_date')
+      session[:sort] = params[:sort]
       @movies = @movies.sort_by{|m| m.release_date}
+    elsif(session.has_key?(:sort))
+      params[:sort]=session[:sort]
+      @redirect=1
     end
     
+    
     if(params[:ratings] != nil)
+      session[:ratings]=params[:ratings]
       @movies = @movies.find_all{ |m| params[:ratings].has_key?(m.rating) }
+    elsif(session.has_key?(:ratings))
+      params[:ratings]=session[:ratings]
+      @redirect=1
     end
+    
+    if(@redirect==1)
+      redirect_to movies_path(sort: params[:sort], ratings: params[:ratings])
+    end
+
   end
 
   def new
